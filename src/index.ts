@@ -51,6 +51,7 @@ let globalUser: User = {}
 // Original handlers for restoration
 let originalUncaughtExceptionHandler: NodeJS.UncaughtExceptionListener | null = null
 let originalUnhandledRejectionHandler: NodeJS.UnhandledRejectionListener | null = null
+let shutdownHooksInstalled = false
 
 /**
  * Configure the Checkend Node SDK
@@ -374,6 +375,9 @@ function handleUnhandledRejection(reason: unknown, promise: Promise<unknown>): v
 }
 
 function installShutdownHooks(): void {
+  if (shutdownHooksInstalled) return
+  shutdownHooksInstalled = true
+
   const shutdown = async () => {
     await stop()
   }
