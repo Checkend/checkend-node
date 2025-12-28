@@ -336,11 +336,32 @@ npm install
 # Build
 npm run build
 
-# Run tests
+# Run tests (67 tests)
 npm test
+
+# Run tests in watch mode
+npm run test:watch
 
 # Type check
 npm run typecheck
+```
+
+### Test Suite
+
+The SDK includes comprehensive tests using Vitest:
+
+| Test File | Tests | Description |
+|-----------|-------|-------------|
+| `test/configuration.test.ts` | 21 | Config options, env vars, validation |
+| `test/notice.test.ts` | 11 | Notice creation, rootPath cleaning, payload |
+| `test/sanitize.test.ts` | 9 | Filtering, Buffer handling, deep nesting |
+| `test/worker.test.ts` | 8 | Queue operations, shutdown, flush |
+| `test/index.test.ts` | 18 | Main API: notify, context, user, runWithContext |
+
+Run a specific test file:
+
+```bash
+npm test -- test/worker.test.ts
 ```
 
 ## License
