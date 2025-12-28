@@ -89,6 +89,7 @@
     "test:watch": "vitest",
     "lint": "eslint src test --ext .ts",
     "typecheck": "tsc --noEmit",
+    "prepare": "scripts/install-hooks.sh",
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
