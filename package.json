@@ -1,0 +1,126 @@
+{
+  "name": "@checkend/node",
+  "version": "0.1.0",
+  "description": "Node.js SDK for Checkend error monitoring",
+  "author": "Simon Chiu <checkend@furvur.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/furvur/checkend-node.git"
+  },
+  "homepage": "https://github.com/furvur/checkend-node",
+  "bugs": {
+    "url": "https://github.com/furvur/checkend-node/issues"
+  },
+  "keywords": [
+    "error",
+    "monitoring",
+    "tracking",
+    "checkend",
+    "node",
+    "express",
+    "koa",
+    "fastify",
+    "typescript"
+  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./express": {
+      "import": {
+        "types": "./dist/integrations/express.d.ts",
+        "default": "./dist/integrations/express.js"
+      },
+      "require": {
+        "types": "./dist/integrations/express.d.cts",
+        "default": "./dist/integrations/express.cjs"
+      }
+    },
+    "./koa": {
+      "import": {
+        "types": "./dist/integrations/koa.d.ts",
+        "default": "./dist/integrations/koa.js"
+      },
+      "require": {
+        "types": "./dist/integrations/koa.d.cts",
+        "default": "./dist/integrations/koa.cjs"
+      }
+    },
+    "./fastify": {
+      "import": {
+        "types": "./dist/integrations/fastify.d.ts",
+        "default": "./dist/integrations/fastify.js"
+      },
+      "require": {
+        "types": "./dist/integrations/fastify.d.cts",
+        "default": "./dist/integrations/fastify.cjs"
+      }
+    },
+    "./testing": {
+      "import": {
+        "types": "./dist/testing.d.ts",
+        "default": "./dist/testing.js"
+      },
+      "require": {
+        "types": "./dist/testing.d.cts",
+        "default": "./dist/testing.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src test",
+    "typecheck": "tsc --noEmit",
+    "prepare": "scripts/install-hooks.sh",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/express": "^5.0.6",
+    "@types/koa": "^3.0.1",
+    "@types/node": "^22.0.0",
+    "eslint": "^9.0.0",
+    "fastify": "^5.6.2",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^2.0.0"
+  },
+  "peerDependencies": {
+    "express": "^4.0.0 || ^5.0.0",
+    "fastify": "^4.0.0 || ^5.0.0",
+    "koa": "^2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "express": {
+      "optional": true
+    },
+    "fastify": {
+      "optional": true
+    },
+    "koa": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
