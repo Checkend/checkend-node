@@ -82,7 +82,6 @@ export class Configuration {
   appName?: string
   revision?: string
   sendRequestData: boolean
-  sendSessionData: boolean
   sendEnvironmentData: boolean
   sendUserData: boolean
 
@@ -113,7 +112,6 @@ export class Configuration {
     this.appName = options.appName || process.env.CHECKEND_APP_NAME
     this.revision = options.revision || process.env.CHECKEND_REVISION
     this.sendRequestData = options.sendRequestData ?? true
-    this.sendSessionData = options.sendSessionData ?? true
     this.sendEnvironmentData = options.sendEnvironmentData ?? false
     this.sendUserData = options.sendUserData ?? true
   }

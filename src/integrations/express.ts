@@ -13,9 +13,14 @@ import type { User, RequestInfo } from '../types'
 // Headers that should be filtered from request data
 const FILTERED_HEADERS = [
   'cookie',
+  'set-cookie',
   'authorization',
+  'proxy-authorization',
   'x-api-key',
   'x-auth-token',
+  'x-access-token',
+  'x-csrf-token',
+  'x-xsrf-token',
 ]
 
 // Headers to exclude entirely (not useful for debugging)

@@ -6,11 +6,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/furvur/checkend-node.git"
+    "url": "https://github.com/Checkend/checkend-node.git"
   },
-  "homepage": "https://github.com/furvur/checkend-node",
+  "homepage": "https://github.com/Checkend/checkend-node",
   "bugs": {
-    "url": "https://github.com/furvur/checkend-node/issues"
+    "url": "https://github.com/Checkend/checkend-node/issues"
   },
   "keywords": [
     "error",

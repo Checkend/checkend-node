@@ -133,11 +133,6 @@ describe('Configuration', () => {
       const config = new Configuration({ apiKey: 'test-key', sendEnvironmentData: true })
       expect(config.sendEnvironmentData).toBe(true)
     })
-
-    it('sets sendSessionData to true by default', () => {
-      const config = new Configuration({ apiKey: 'test-key' })
-      expect(config.sendSessionData).toBe(true)
-    })
   })
 
   describe('isValid', () => {

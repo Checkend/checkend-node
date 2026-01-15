@@ -104,22 +104,28 @@ export class Worker {
 
     this.processing = true
 
-    while (this.queue.length > 0) {
-      const item = this.queue.shift()!
+    try {
+      while (this.queue.length > 0) {
+        const item = this.queue.shift()!
 
-      if (item === SHUTDOWN) {
-        break
+        if (item === SHUTDOWN) {
+          break
+        }
+
+        if (typeof item === 'object' && 'type' in item && item.type === FLUSH) {
+          item.resolve()
+          continue
+        }
+
+        await this.sendWithThrottle(item as NoticePayload)
       }
-
-      if (typeof item === 'object' && 'type' in item && item.type === FLUSH) {
-        item.resolve()
-        continue
+    } finally {
+      this.processing = false
+      // Retry if queue has items (e.g., added during processing)
+      if (this.queue.length > 0 && !this.shutdown) {
+        this.processQueue()
       }
-
-      await this.sendWithThrottle(item as NoticePayload)
     }
-
-    this.processing = false
   }
 
   private async sendWithThrottle(payload: NoticePayload): Promise<void> {

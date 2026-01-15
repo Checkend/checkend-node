@@ -139,13 +139,13 @@ export async function reset(): Promise<void> {
  * Report an error to Checkend
  */
 export function notify(error: Error, options: NotifyOptions = {}): void {
-  if (!shouldNotify()) return
+  if (!shouldNotify() || !config) return
 
   const errorClass = error.name || 'Error'
   const message = error.message || 'Unknown error'
   const code = (error as NodeJS.ErrnoException).code
 
-  if (config!.shouldIgnore(errorClass, message, code)) {
+  if (config.shouldIgnore(errorClass, message, code)) {
     log(`Ignoring error: ${errorClass}`)
     return
   }
@@ -154,18 +154,18 @@ export function notify(error: Error, options: NotifyOptions = {}): void {
 
   // Build context with optional environment data
   let contextData = { ...globalContext, ...localContext, ...options.context }
-  if (config!.sendEnvironmentData) {
+  if (config.sendEnvironmentData) {
     contextData = { ...contextData, env: sanitize({ ...process.env }) }
   }
   const mergedContext = sanitize(contextData)
 
   // Include user data based on config
-  const mergedUser = config!.sendUserData
+  const mergedUser = config.sendUserData
     ? sanitize({ ...globalUser, ...localUser, ...options.user })
     : {}
 
   // Include request data based on config
-  const mergedRequest = config!.sendRequestData
+  const mergedRequest = config.sendRequestData
     ? sanitize({ ...localRequest, ...options.request })
     : {}
 
@@ -175,10 +175,10 @@ export function notify(error: Error, options: NotifyOptions = {}): void {
     user: mergedUser,
     fingerprint: options.fingerprint,
     tags: options.tags,
-    environment: config!.environment,
-    rootPath: config!.rootPath,
-    appName: config!.appName,
-    revision: config!.revision,
+    environment: config.environment,
+    rootPath: config.rootPath,
+    appName: config.appName,
+    revision: config.revision,
   })
 
   if (!runBeforeNotifyCallbacks(notice)) {
@@ -192,24 +192,24 @@ export function notify(error: Error, options: NotifyOptions = {}): void {
  * Report an error synchronously (returns promise)
  */
 export async function notifySync(error: Error, options: NotifyOptions = {}): Promise<ApiResponse | null> {
-  if (!shouldNotify()) return null
+  if (!shouldNotify() || !config || !client) return null
 
   const { context: localContext, user: localUser, request: localRequest } = getLocalStorage()
 
   // Build context with optional environment data
   let contextData = { ...globalContext, ...localContext, ...options.context }
-  if (config!.sendEnvironmentData) {
+  if (config.sendEnvironmentData) {
     contextData = { ...contextData, env: sanitize({ ...process.env }) }
   }
   const mergedContext = sanitize(contextData)
 
   // Include user data based on config
-  const mergedUser = config!.sendUserData
+  const mergedUser = config.sendUserData
     ? sanitize({ ...globalUser, ...localUser, ...options.user })
     : {}
 
   // Include request data based on config
-  const mergedRequest = config!.sendRequestData
+  const mergedRequest = config.sendRequestData
     ? sanitize({ ...localRequest, ...options.request })
     : {}
 
@@ -219,17 +219,17 @@ export async function notifySync(error: Error, options: NotifyOptions = {}): Pro
     user: mergedUser,
     fingerprint: options.fingerprint,
     tags: options.tags,
-    environment: config!.environment,
-    rootPath: config!.rootPath,
-    appName: config!.appName,
-    revision: config!.revision,
+    environment: config.environment,
+    rootPath: config.rootPath,
+    appName: config.appName,
+    revision: config.revision,
   })
 
   if (!runBeforeNotifyCallbacks(notice)) {
     return null
   }
 
-  return client!.sendNotice(notice)
+  return client.sendNotice(notice)
 }
 
 // ========== Context Management ==========
@@ -344,25 +344,25 @@ function uninstallUnhandledRejectionHandler(): void {
 }
 
 function handleUncaughtException(error: Error, origin: NodeJS.UncaughtExceptionOrigin): void {
-  if (!shouldNotify()) return
+  if (!shouldNotify() || !config) return
 
   const code = (error as NodeJS.ErrnoException).code
-  if (config!.shouldIgnore(error.name, error.message, code)) {
+  if (config.shouldIgnore(error.name, error.message, code)) {
     return
   }
 
   const notice = createNotice(error, {
     context: sanitize({ ...globalContext, unhandled: true, origin }),
     tags: ['unhandled', 'uncaughtException'],
-    environment: config!.environment,
-    rootPath: config!.rootPath,
-    appName: config!.appName,
-    revision: config!.revision,
+    environment: config.environment,
+    rootPath: config.rootPath,
+    appName: config.appName,
+    revision: config.revision,
   })
 
   // Send synchronously for uncaught exceptions
-  client?.sendNotice(notice).catch(() => {
-    // Ignore errors when reporting errors
+  client?.sendNotice(notice).catch((err) => {
+    config?.logger.debug(`Failed to send uncaught exception notice: ${err instanceof Error ? err.message : err}`)
   })
 
   // Call original handler if it exists
@@ -372,7 +372,7 @@ function handleUncaughtException(error: Error, origin: NodeJS.UncaughtExceptionO
 }
 
 function handleUnhandledRejection(reason: unknown, promise: Promise<unknown>): void {
-  if (!shouldNotify()) return
+  if (!shouldNotify() || !config) return
 
   let error: Error
   if (reason instanceof Error) {
@@ -386,17 +386,17 @@ function handleUnhandledRejection(reason: unknown, promise: Promise<unknown>): v
   }
 
   const code = (error as NodeJS.ErrnoException).code
-  if (config!.shouldIgnore(error.name, error.message, code)) {
+  if (config.shouldIgnore(error.name, error.message, code)) {
     return
   }
 
   const notice = createNotice(error, {
     context: sanitize({ ...globalContext, unhandled: true, rejection: true }),
     tags: ['unhandled', 'unhandledRejection'],
-    environment: config!.environment,
-    rootPath: config!.rootPath,
-    appName: config!.appName,
-    revision: config!.revision,
+    environment: config.environment,
+    rootPath: config.rootPath,
+    appName: config.appName,
+    revision: config.revision,
   })
 
   // Queue for async sending
@@ -408,11 +408,15 @@ function handleUnhandledRejection(reason: unknown, promise: Promise<unknown>): v
   }
 }
 
+let isShuttingDown = false
+
 function installShutdownHooks(): void {
   if (shutdownHooksInstalled) return
   shutdownHooksInstalled = true
 
   const shutdown = async () => {
+    if (isShuttingDown) return
+    isShuttingDown = true
     await stop()
   }
 
@@ -441,7 +445,8 @@ function runBeforeNotifyCallbacks(notice: Notice): boolean {
         return false
       }
     } catch (e) {
-      config.logger.warn(`beforeNotify callback failed: ${e}`)
+      const errorMsg = e instanceof Error ? e.message : String(e)
+      config.logger.warn(`beforeNotify callback failed: ${errorMsg}`)
     }
   }
 
@@ -452,8 +457,8 @@ function sendNotice(notice: Notice): void {
   if (worker) {
     worker.push(notice)
   } else {
-    client?.sendNotice(notice).catch(() => {
-      // Ignore errors when reporting errors
+    client?.sendNotice(notice).catch((err) => {
+      config?.logger.debug(`Failed to send notice: ${err instanceof Error ? err.message : err}`)
     })
   }
 }

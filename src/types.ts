@@ -154,8 +154,6 @@ export interface ConfigOptions {
   revision?: string
   /** Include request data in error reports (default: true) */
   sendRequestData?: boolean
-  /** Include session data in error reports (default: true) */
-  sendSessionData?: boolean
   /** Include environment variables in error reports (default: false) */
   sendEnvironmentData?: boolean
   /** Include user data in error reports (default: true) */
